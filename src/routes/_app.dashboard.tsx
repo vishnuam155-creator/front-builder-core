@@ -98,12 +98,14 @@ function DashboardPage() {
         />
         <Stat
           label="Present this month"
-          value={
-            monthly.data
-              ? `${monthly.data.present_days}/${monthly.data.total_working_days}`
-              : "—"
+          value={monthly.data ? String(monthly.data.present_days) : "—"}
+          hint={
+            monthly.isLoading
+              ? "Loading…"
+              : monthly.data
+                ? `${monthly.data.half_days} half · ${monthly.data.wfh_days} WFH`
+                : ""
           }
-          hint={monthly.isLoading ? "Loading…" : "Working days"}
         />
         <Stat
           label="Hours this month"
