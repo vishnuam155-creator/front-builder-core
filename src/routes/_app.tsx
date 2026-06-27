@@ -41,6 +41,9 @@ function AppLayout() {
         <nav className="flex-1 space-y-1 p-3">
           <NavItem to="/dashboard" label="Dashboard" />
           <NavItem to="/attendance" label="Attendance" />
+          {(user?.role === "HR_ADMIN" || user?.role === "SUPER_ADMIN") && (
+            <NavItem to="/admin" label="Admin" />
+          )}
           <NavItem to="/profile" label="Profile" />
         </nav>
         <div className="border-t border-border p-3">
