@@ -207,7 +207,7 @@ function AttendancePage() {
                   </td>
                 </tr>
               )}
-              {history.data?.slice(0, 20).map((r) => (
+              {historyRecords.slice(0, 20).map((r) => (
                 <tr key={r.id} className="border-t border-border">
                   <td className="px-6 py-3 font-medium text-foreground">{r.date}</td>
                   <td className="px-6 py-3 text-foreground">{r.status}</td>
@@ -225,7 +225,7 @@ function AttendancePage() {
                   </td>
                 </tr>
               ))}
-              {history.data && history.data.length === 0 && (
+              {!history.isLoading && historyRecords.length === 0 && (
                 <tr>
                   <td className="px-6 py-4 text-muted-foreground" colSpan={6}>
                     No records yet.
