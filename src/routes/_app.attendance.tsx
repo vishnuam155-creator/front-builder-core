@@ -31,6 +31,17 @@ function todayStr() {
   return new Date().toISOString().slice(0, 10);
 }
 
+interface Paginated<T> {
+  count: number;
+  results: T[];
+}
+
+function unwrap<T>(data: Paginated<T> | T[] | undefined): T[] {
+  if (!data) return [];
+  if (Array.isArray(data)) return data;
+  return data.results ?? [];
+}
+
 function AttendancePage() {
   const qc = useQueryClient();
   const today = todayStr();
@@ -43,15 +54,22 @@ function AttendancePage() {
   const todayQuery = useQuery({
     queryKey: ["attendance", "today", today],
     queryFn: () =>
-      api<AttendanceRecord[]>(`/attendance/records/?date=${today}`),
+      api<Paginated<AttendanceRecord> | AttendanceRecord[]>(
+        `/attendance/records/?date=${today}`,
+      ),
   });
 
   const history = useQuery({
     queryKey: ["attendance", "history"],
-    queryFn: () => api<AttendanceRecord[]>(`/attendance/records/?ordering=-date`),
+    queryFn: () =>
+      api<Paginated<AttendanceRecord> | AttendanceRecord[]>(
+        `/attendance/records/?ordering=-date`,
+      ),
   });
 
-  const mine = todayQuery.data?.[0];
+  const todayRecords = unwrap(todayQuery.data);
+  const historyRecords = unwrap(history.data);
+  const mine = todayRecords[0];
   const openBreak = mine?.breaks?.find((b) => !b.break_end);
   const hasIn = !!mine?.punch_in;
   const hasOut = !!mine?.punch_out;
@@ -189,7 +207,7 @@ function AttendancePage() {
                   </td>
                 </tr>
               )}
-              {history.data?.slice(0, 20).map((r) => (
+              {historyRecords.slice(0, 20).map((r) => (
                 <tr key={r.id} className="border-t border-border">
                   <td className="px-6 py-3 font-medium text-foreground">{r.date}</td>
                   <td className="px-6 py-3 text-foreground">{r.status}</td>
@@ -207,7 +225,7 @@ function AttendancePage() {
                   </td>
                 </tr>
               ))}
-              {history.data && history.data.length === 0 && (
+              {!history.isLoading && historyRecords.length === 0 && (
                 <tr>
                   <td className="px-6 py-4 text-muted-foreground" colSpan={6}>
                     No records yet.
