@@ -29,6 +29,24 @@ function todayStr() {
   return new Date().toISOString().slice(0, 10);
 }
 
+interface Paginated<T> {
+  count: number;
+  results: T[];
+}
+
+interface MonthlyReport {
+  employee?: string;
+  year: number;
+  month: number;
+  total_working_hours: string;
+  total_overtime: string;
+  avg_working_hours: string;
+  present_days: number;
+  half_days: number;
+  late_days: number;
+  wfh_days: number;
+}
+
 function DashboardPage() {
   const { user } = useAuth();
   const today = todayStr();
@@ -36,26 +54,25 @@ function DashboardPage() {
   const todayQuery = useQuery({
     queryKey: ["attendance", "today", today],
     queryFn: () =>
-      api<AttendanceRecord[]>(`/attendance/records/?date=${today}`),
+      api<Paginated<AttendanceRecord> | AttendanceRecord[]>(
+        `/attendance/records/?date=${today}`,
+      ),
   });
 
   const monthly = useQuery({
     queryKey: ["attendance", "monthly"],
     queryFn: () => {
       const d = new Date();
-      return api<{
-        total_working_days: number;
-        present_days: number;
-        absent_days: number;
-        late_days: number;
-        total_working_hours: string;
-      }>(
+      return api<MonthlyReport>(
         `/attendance/records/monthly-report/?year=${d.getFullYear()}&month=${d.getMonth() + 1}`,
       );
     },
   });
 
-  const mine = todayQuery.data?.[0];
+  const todayRecords = Array.isArray(todayQuery.data)
+    ? todayQuery.data
+    : (todayQuery.data?.results ?? []);
+  const mine = todayRecords[0];
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
